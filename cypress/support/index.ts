@@ -21,3 +21,13 @@ beforeEach(() => {
     });
   }
 });
+
+
+afterEach(() => {
+  Cypress.Cookies.defaults({
+    preserve : cookie => {
+      return true
+    }
+  })
+})
+

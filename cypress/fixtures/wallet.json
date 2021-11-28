@@ -1,0 +1,6 @@
+{
+    "transaction" : {
+        "amount" : 100,
+        "note" : "transaction note"
+    }
+}
