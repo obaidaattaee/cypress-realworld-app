@@ -85,17 +85,18 @@ describe('this suite to send money between test users', () => {
 
     context('make sure the amount are recieved with note', () => {
         let notification_count
+        let transactionId
         before(() => {
             cy.loginUser(user2)
 
-            // cy.loginUser('qCF3cw')
+            // cy.loginUser('0oqskI')
         })
 
         after(() => {
             cy.logoutUser()
-            cy.end()
         })
 
+        
         it('verify notification count is appeared', () => {
             cy.get('[data-test="nav-top-notifications-count"] > .MuiBadge-anchorOriginTopRightRectangle').should('not.have.class' , 'MuiBadge-invisible').and('be.visible')
             cy.get('[data-test="nav-top-notifications-count"] > .MuiBadge-anchorOriginTopRightRectangle').invoke('text').then( text => notification_count = text)
@@ -109,12 +110,46 @@ describe('this suite to send money between test users', () => {
             cy.get('[data-test="notifications-list"] li').should('have.length' , notification_count)
         });
 
-        it('verify that dismiss all notifications', () => {
-            cy.get('[data-test="notifications-list"] li button').then(dismissButtons => {
-                dismissButtons.map((index , button) => {
-                    button.click()
-                });
-            }).then(() => cy.get('[data-test="notifications-list"] li').should('have.length' , 0))
+        // it('verify that dismiss all notifications', () => {
+        //     cy.get('[data-test="notifications-list"] li button').then(dismissButtons => {
+        //         dismissButtons.map((index , button) => {
+        //             button.click()
+        //         });
+        //     }).then(() => cy.get('[data-test="notifications-list"] li').should('have.length' , 0))
+        // });
+
+        it('verify that show transactions', () => {
+            cy.get('[data-test="app-name-logo"]').click()
+
+            cy.get('[data-test="nav-personal-tab"]').should('not.have.class', 'Mui-selected')
+
+            cy.get('[data-test="nav-personal-tab"]').click().should('have.class', 'Mui-selected')
+
+            cy.url().should('include' , 'personal')
+        });
+
+        it('verify list of transactions contains one transaction', () => {
+            cy.get('[data-test="transaction-list"] li').should('have.length' , 1)
+            cy.get('[data-test="transaction-list"] li').first().click()
+            cy.wait(4000)
+            cy.location('href').then( url => {
+                url = `${url}`.split('/')
+                transactionId = url[url.length - 1]
+            }).then(() => {
+                cy.url().should('include' , 'transaction/'+transactionId)
+            })
+
+        });
+
+        it('verify show transaction details', () => {
+            
+            cy.fixture("wallet").then(({transaction}) => {
+                cy.get(`[data-test="transaction-amount-${transactionId}"]` ).should('contain.text' , '$'+transaction.amount.toFixed(2))
+
+            })
+            cy.get(`[data-test="transaction-comment-input-${transactionId}"]`).type('note')
+
+            cy.get(`[data-test="transaction-like-button-${transactionId}"]`).click()
         });
     })
 })

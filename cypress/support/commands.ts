@@ -12,7 +12,6 @@ import "@percy/cypress";
 import "./auth-provider-commands/cognito";
 import "./auth-provider-commands/auth0";
 import "./auth-provider-commands/okta";
-import { verify } from "cypress/types/sinon";
 
 // custom command to make taking snapshots with full name
 // formed from the test title + suffix easier
