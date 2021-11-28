@@ -12,6 +12,7 @@ import "@percy/cypress";
 import "./auth-provider-commands/cognito";
 import "./auth-provider-commands/auth0";
 import "./auth-provider-commands/okta";
+import { verify } from "cypress/types/sinon";
 
 // custom command to make taking snapshots with full name
 // formed from the test title + suffix easier
@@ -364,3 +365,67 @@ Cypress.Commands.add("loginByGoogleApi", () => {
     });
   });
 });
+
+Cypress.Commands.add('registerNewUser', (user) => {
+  // verify that redirect to signin page
+  cy.url().should('include', 'signin')
+
+  // click over registration button
+  cy.get('[data-test="signup"]').click()
+
+  // verify that redirect to signup page 
+  cy.url().should('include', 'signup')
+
+  // fill registration fields 
+  cy.get('#firstName').clear().type('first ' + user).should('not.have.value' ,'')
+  cy.get('#lastName').clear().type('last ' + user).should('not.have.value' ,'')
+  cy.get('#username').clear().type(user).should('not.have.value' ,'')
+  cy.get('#password').clear().type('password'+user).should('not.have.value' ,'')
+  cy.get('#confirmPassword').clear().type('password'+user).should('not.have.value' ,'')
+
+  // veify that button is enable and clickable 
+  cy.get('button[data-test="signup-submit"]').should('not.have.class' , 'Mui-disabled').and('not.have.attr' , 'disabled')
+  cy.get('button[data-test="signup-submit"]').click()
+  cy.url().should('include' , 'signin')
+
+})
+
+
+Cypress.Commands.add('createBankAccount' , () => {
+  cy.get('[data-test="user-onboarding-next"]').click()
+
+  cy.get('#bankaccount-bankName-input').type('bankname')
+  cy.get('#bankaccount-routingNumber-input').type(123456789)
+  cy.get('#bankaccount-accountNumber-input').type(1234567890)
+
+  cy.get('[data-test="bankaccount-submit"]').click()
+
+  cy.get('[data-test="user-onboarding-next"]').click()
+})
+
+
+Cypress.Commands.add('loginUser' , (user) => {
+  cy.url().should('include' , 'signin')
+
+  cy.get('#username').clear().type(user)
+
+  cy.get('#password').clear().type('password'+user)
+
+  cy.get('[data-test="signin-submit"]').should('not.have.class' , 'Mui-disabled').and('not.have.attr' , 'disabled')
+  cy.get('[data-test="signin-submit"]').click()
+
+  cy.get('body').then(body => {
+    cy.wait(4000).then(() => {
+        if (body.find('[role="dialog"] > [data-test="user-onboarding-dialog-title"]').length > 0) {
+            cy.createBankAccount()
+        }
+    })
+  })
+})
+
+Cypress.Commands.add('logoutUser' , () => {
+  cy.get('[data-test="sidenav-signout"]').should('contain.text' , 'Logout').and('be.visible')
+
+  cy.get('[data-test="sidenav-signout"]').click()
+})
+
